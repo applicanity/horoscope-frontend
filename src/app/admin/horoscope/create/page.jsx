@@ -6,6 +6,7 @@ import { useState } from "react";
 
 const AdminHoroscopeCreatePage = () => {
   const [horoscope, setHoroscope] = useState({});
+  const [image, setImage] = useState({});
   const router = useRouter();
 
   const handleChangeRecord = (name, value) => {
@@ -20,15 +21,27 @@ const AdminHoroscopeCreatePage = () => {
 
   const submitForm = (e) => {
     e.preventDefault();
+
+    const data = new FormData();
+    data.append("name", horoscope.name);
+    data.append("description", horoscope.description);
+    data.append("date_start", horoscope.date_start);
+    data.append("date_end", horoscope.date_end);
+
+    // Append multiple files
+    for (let i = 0; i < image.length; i++) {
+        data.append("image[]", image[i]);
+    }
+    
     axios
       .request({
-        method: "put",
+        method: "post",
         maxBodyLength: Infinity,
         url: `${process.env.NEXT_PUBLIC_API_URL}/api/admin/horoscope`,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        data: horoscope,
+        data,
       })
       .then((response) => {
         if (response.data?.success) {
@@ -42,7 +55,7 @@ const AdminHoroscopeCreatePage = () => {
   };
   return (
     <div className="max-w-screen-sm">
-      <form onSubmit={submitForm}>
+      <form onSubmit={submitForm} encType="multipart/form-data">
         <div className="flex flex-col gap-4">
           <label
             htmlFor="name"
@@ -65,10 +78,10 @@ const AdminHoroscopeCreatePage = () => {
             className="relative block overflow-hidden rounded-md border border-gray-200 px-3 pt-3 shadow-sm focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
           >
             <input
-              type="text"
+              type="file"
               id="image"
               placeholder="Image"
-              onChange={(e) => handleChangeRecord("image", e.target.value)}
+              onChange={(e) => setImage(e.target.files)}
               className="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:outline-none focus:ring-0 sm:text-sm"
             />
 
